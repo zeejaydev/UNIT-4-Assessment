@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Back End Assessment</title>
+  </head>
+  <body class="container">
+    <button id="complimentButton">Get a compliment</button>
+    <button id="fortuneButton">Get a fortune</button>
+    <form>
+      <input id="name" type="text" placeholder="Add Name">
+      <button id="addname">Add Name</button>
+      <button id="delete">Delete Name</button>
+      <button id="update">Update Name</button>
+    </form>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+      
+      document.getElementById("complimentButton").onclick = function () {
+        axios.get("http://localhost:4000/api/compliment/")
+            .then(function (response) {
+              const data = response.data;
+              alert(data);
+            });
+      };
+
+      //Fortune Button 
+      document.getElementById("fortuneButton").onclick = (e)=> {
+        e.preventDefault()
+        axios.get("http://localhost:4000/api/fortunes/")
+            .then(function (response) {
+              const data = response.data;
+              alert(data);
+            });
+      };
+
+      //Add Name Button with POST and GET Requests
+      document.getElementById("addname").onclick = (e)=>{
+        e.preventDefault();
+        
+        const text = document.getElementById('name').value
+        
+        if(text === '')return alert('Please type your name first')
+        
+        axios.post(`http://localhost:4000/api/name/${text}`)
+          .then(function (response) {
+            const data = response.data;
+            alert(`Thank you ${data} your name was added`);
+            document.getElementById('name').setAttribute('placeholder','Update Name')
+          });
+
+        axios.get('http://localhost:4000/api/name').then(res=> {
+          const addButton = document.getElementById('addname'); 
+          res.data && addButton.setAttribute('disabled',true);
+          const div = document.createElement('div');
+          div.id = 'container';
+          const h1 = document.createElement('h1');
+          h1.textContent = res.data;
+          div.appendChild(h1);
+          document.querySelector('body').appendChild(div);
+          document.getElementById('name').value = '';
+        });
+
+      };
+
+      //Delete Button DELETE Request
+      document.getElementById('delete').onclick = (e)=>{
+        e.preventDefault();
+        
+        const container = document.getElementById('container');
+        
+        if(!container)return alert('Nothing to delete');
+        
+        axios.delete(`http://localhost:4000/api/delete`).then((res)=>{
+          alert('Name was deleted');
+          document.getElementById('name').setAttribute('placeholder','Add Name')
+          container.remove();
+          const addButton = document.getElementById('addname'); 
+          axios.get('http://localhost:4000/api/name').then(res=> res.data===''?addButton.removeAttribute('disabled'):null);
+        });
+
+      };
+
+      //Update Button UPDATE Request
+      document.getElementById('update').onclick = async (e)=>{
+        e.preventDefault();
+        
+        const nameExisit = await axios.get('http://localhost:4000/api/name').then(res=>res.data);
+
+        if(nameExisit === '')return alert('Nothing to update');
+      
+        const text = document.getElementById('name').value
+
+        if(text === '') return alert('Please enter a new name first');
+
+        axios.put(`http://localhost:4000/api/name/${text}`).then(res=>{
+          document.querySelector('h1').textContent = res.data;
+          document.getElementById('name').value = '';
+        });
+      };
+
+    </script>
+  </body>
+</html>
